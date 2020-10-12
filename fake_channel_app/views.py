@@ -7,8 +7,8 @@ from .models import OrgConfig, Contact
 
 def simulate_response_on(request):
     org_url = OrgConfig.instance().callback_url
-    message_id = request.GET.get("id")
-    contact_number = request.GET.get("to") or request.GET.get("to_no_plus")
+    message_id = request.GET.get("id") or request.POST.get("id")
+    contact_number = request.GET.get("to") or request.GET.get("to_no_plus") or request.POST.get("to") or request.GET.get("to_no_plus")
     status = "Success"
     if contact_number:
         contact, _= Contact.objects.get_or_create(number=contact_number)

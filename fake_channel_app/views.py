@@ -1,17 +1,21 @@
 import requests
 
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import OrgConfig, Contact
 
 
-@csrf_exempt
+@api_view(['GET', 'POST'])
 def simulate_response_on(request):
     org_url = OrgConfig.instance().callback_url
-    message_id = request.GET.get("id") or request.POST.get("id")
-    contact_number = request.GET.get("to") or request.GET.get("to_no_plus") or request.POST.get("to") or request.GET.get("to_no_plus")
+    data = {}
+    for key in request.query_params:
+        data[key] = request.query_params.get(key)
+    for key in request.data:
+        data[key] = request.data.get(key)
+    message_id = data.get("id")
+    contact_number = data.get("to") or data.get("to_no_plus")
     status = "Success"
     if contact_number:
         contact, _= Contact.objects.get_or_create(number=contact_number)
@@ -29,7 +33,7 @@ def simulate_response_on(request):
     except:
         status = "Problems with sending callback. Check organization url."
 
-    return JsonResponse({
+    return Response({
         "id": message_id,
         "contact_number": contact_number,
         "org_url": org_url,

@@ -1,10 +1,13 @@
 import requests
 
-from django.shortcuts import render
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import OrgConfig, Contact
 
 
+@csrf_exempt
 def simulate_response_on(request):
     org_url = OrgConfig.instance().callback_url
     message_id = request.GET.get("id") or request.POST.get("id")

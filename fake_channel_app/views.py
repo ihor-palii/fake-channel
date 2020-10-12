@@ -9,15 +9,22 @@ def simulate_response_on(request):
     org_url = OrgConfig.instance().callback_url
     message_id = request.GET.get("id")
     contact_number = request.GET.get("to") or request.GET.get("to_no_plus")
-    contact, _= Contact.objects.get_or_create(number=contact_number)
-    response = contact.get_response()
     status = "Success"
+    if contact_number:
+        contact, _= Contact.objects.get_or_create(number=contact_number)
+        response = contact.get_response()
+    else:
+        contact = None
+        response = ""
+        status = "Not enought of params"
 
     try:
-        requests.get(f"{org_url}/delivered", params={"id": message_id})
-        requests.get(f"{org_url}/receive", params={"from": contact_number, "text": response})
+        if message_id:
+            requests.get(f"{org_url}/delivered", params={"id": message_id})
+        if contact_number:
+            requests.get(f"{org_url}/receive", params={"from": contact_number, "text": response})
     except:
-        status = "Fail"
+        status = "Problems with sending callback. Check organization url."
 
     return JsonResponse({
         "id": message_id,
